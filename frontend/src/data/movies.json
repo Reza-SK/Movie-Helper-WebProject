@@ -1,0 +1,114 @@
+[
+  {
+    "id": 1,
+    "title": "Midnight",
+    "description": "A detective follows a mysterious clue through a sleepless city.",
+    "year": 2025,
+    "poster": "/poster-midnight.png",
+    "duration_minutes": 112,
+    "genre_ids": [
+      1,
+      6
+    ],
+    "created_at": "2026-09-01T09:00:00Z",
+    "type": "movie"
+  },
+  {
+    "id": 2,
+    "title": "Orbit",
+    "description": "A stranded crew searches for a way home from an unknown planet.",
+    "year": 2024,
+    "poster": "/poster-orbit.png",
+    "duration_minutes": 128,
+    "genre_ids": [
+      2,
+      3
+    ],
+    "created_at": "2026-09-02T09:00:00Z",
+    "type": "movie"
+  },
+  {
+    "id": 3,
+    "title": "The Last Journey",
+    "description": "Two friends cross a mountain range to keep an old promise.",
+    "year": 2025,
+    "poster": null,
+    "duration_minutes": 105,
+    "genre_ids": [
+      3,
+      4
+    ],
+    "created_at": "2026-09-03T09:00:00Z",
+    "type": "movie"
+  },
+  {
+    "id": 4,
+    "title": "Beyond the Horizon",
+    "description": "A family starts a new chapter in a quiet seaside town.",
+    "year": 2023,
+    "poster": null,
+    "duration_minutes": 98,
+    "genre_ids": [
+      4
+    ],
+    "created_at": "2026-09-04T09:00:00Z",
+    "type": "movie"
+  },
+  {
+    "id": 5,
+    "title": "One More Take",
+    "description": "An inexperienced film crew turns a difficult shoot into an unlikely adventure.",
+    "year": 2024,
+    "poster": null,
+    "duration_minutes": 94,
+    "genre_ids": [
+      5
+    ],
+    "created_at": "2026-09-05T09:00:00Z",
+    "type": "movie"
+  },
+  {
+    "id": 6,
+    "title": "The Silent Room",
+    "description": "An archivist discovers a secret hidden inside a forgotten recording.",
+    "year": 2022,
+    "poster": null,
+    "duration_minutes": 110,
+    "genre_ids": [
+      6,
+      1
+    ],
+    "created_at": "2026-09-06T09:00:00Z",
+    "type": "movie"
+  },
+  {
+    "id": 7,
+    "title": "Wednesdays",
+    "description": "A student investigates strange events at a mysterious school.",
+    "year": 2025,
+    "poster": "/poster-wednesdays.png",
+    "duration_minutes": null,
+    "seasons": 2,
+    "type": "series",
+    "genre_ids": [
+      6,
+      4
+    ],
+    "created_at": "2026-09-07T09:00:00Z"
+  },
+  {
+    "id": 8,
+    "title": "Outer Signals",
+    "description": "An observatory team receives a message from a distant civilization.",
+    "year": 2024,
+    "poster": null,
+    "duration_minutes": null,
+    "seasons": 1,
+    "type": "series",
+    "genre_ids": [
+      2,
+      6
+    ],
+    "created_at": "2026-09-08T09:00:00Z"
+  }
+]

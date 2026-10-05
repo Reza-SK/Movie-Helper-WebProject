@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "title": "Welcome to Movie Helper",
+    "message": "Complete your profile and discover your next movie.",
+    "is_read": true,
+    "created_at": "2026-09-01T10:05:00Z"
+  },
+  {
+    "id": 2,
+    "user_id": 1,
+    "title": "New movie available",
+    "message": "The Silent Room is now available in Discovery.",
+    "is_read": false,
+    "created_at": "2026-10-01T09:00:00Z"
+  },
+  {
+    "id": 3,
+    "user_id": 1,
+    "title": "Contact message updated",
+    "message": "Your message has been resolved by the site team.",
+    "is_read": false,
+    "created_at": "2026-10-02T14:00:00Z"
+  },
+  {
+    "id": 4,
+    "user_id": 2,
+    "title": "New contact message",
+    "message": "A user has submitted a movie suggestion.",
+    "is_read": false,
+    "created_at": "2026-10-03T11:00:00Z"
+  },
+  {
+    "id": 5,
+    "user_id": 3,
+    "title": "Welcome to Movie Helper",
+    "message": "Explore movies and share your ratings.",
+    "is_read": true,
+    "created_at": "2026-09-10T12:05:00Z"
+  }
+]

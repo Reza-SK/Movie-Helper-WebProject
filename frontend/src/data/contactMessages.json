@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "subject": "Profile issue",
+    "message": "My display name did not update after saving my profile.",
+    "status": "resolved",
+    "created_at": "2026-09-30T10:00:00Z",
+    "resolved_at": "2026-10-02T14:00:00Z"
+  },
+  {
+    "id": 2,
+    "user_id": 3,
+    "subject": "Movie suggestion",
+    "message": "Could you add more mystery movies to the catalog?",
+    "status": "new",
+    "created_at": "2026-10-03T11:00:00Z",
+    "resolved_at": null
+  },
+  {
+    "id": 3,
+    "user_id": 1,
+    "subject": "Missing poster",
+    "message": "The Last Journey does not have a poster.",
+    "status": "in_progress",
+    "created_at": "2026-10-04T08:00:00Z",
+    "resolved_at": null
+  }
+]
