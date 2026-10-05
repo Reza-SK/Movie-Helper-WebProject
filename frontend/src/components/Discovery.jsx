@@ -122,6 +122,7 @@ function Discovery() {
         <div className="movie-grid">
           {visibleItems.map((item) => (
             <article className="movie-card" key={item.id}>
+              <a className="catalog-detail-link" href={`/movie-detail?id=${item.id}`}>
               <div className="poster">
                 {item.poster ? (
                   <img
@@ -154,6 +155,7 @@ function Discovery() {
                     : `Rating: ${item.average_rating.toFixed(1)} / 10 (${item.rating_count} ratings)`}
                 </small>
               </div>
+              </a>
             </article>
           ))}
         </div>

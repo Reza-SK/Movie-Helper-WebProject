@@ -1,13 +1,12 @@
-import users from "../data/users.json";
-import movies from "../data/movies.json";
-import ratings from "../data/ratings.json";
-import reviews from "../data/reviews.json";
+import { getUsers } from "./userService";
+import { getMovies } from "./movieService";
+import { getRatings, getReviews, userKey } from "./feedbackService";
 
 // Replace these async functions with API calls when the backend is ready.
 const storageKey = (user) => `movie-helper-profile-${user.username}`;
 
 export async function getProfile(user) {
-  const original = users.find((item) => item.username === user.username) || user;
+  const original = getUsers().find((item) => item.username === user.username) || user;
   let saved = {};
   try {
     saved = JSON.parse(localStorage.getItem(storageKey(user))) || {};
@@ -30,7 +29,7 @@ export async function saveProfile(user, values) {
   };
   if (!profile.display_name) throw new Error("Please enter your display name.");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) throw new Error("Please enter a valid email address.");
-  for (const other of users) {
+  for (const other of getUsers()) {
     if (other.username === user.username) continue;
     const otherProfile = await getProfile(other);
     if (otherProfile.email.toLowerCase() === profile.email.toLowerCase()) {
@@ -42,13 +41,16 @@ export async function saveProfile(user, values) {
 }
 
 export async function getHistory(user) {
-  if (user.id == null) return [];
+  const ratings = getRatings();
+  const reviews = getReviews();
   const entries = [
-    ...ratings.filter((item) => item.user_id === user.id).map((item) => ({ ...item, type: "rating" })),
-    ...reviews.filter((item) => item.user_id === user.id).map((item) => ({ ...item, type: "review" })),
+    ...ratings.filter((item) => item.user_id === userKey(user)).map((item) => ({ ...item, type: "rating" })),
+    ...reviews.filter((item) => item.user_id === userKey(user)).map((item) => ({ ...item, type: "review" })),
   ];
   return entries.map((entry) => ({
     ...entry,
-    movie_title: movies.find((movie) => movie.id === entry.movie_id)?.title || "Unavailable movie",
+    movie_title: getMovies().find((movie) => movie.id === entry.movie_id)?.title || "Unavailable movie",
   })).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }
+
+

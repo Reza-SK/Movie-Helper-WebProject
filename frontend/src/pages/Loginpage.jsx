@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getUsers, registerUser } from "../services/userService";
 
 const emptyForm = { username: "", email: "", password: "", confirm: "" };
 const titles = {
@@ -41,6 +42,14 @@ function LoginPage({ initialMode = "login", onAuthenticated }) {
       return;
     }
     if (mode !== "forgot" && onAuthenticated) {
+      if (mode === "register") {
+        try { registerUser(form); }
+        catch (reason) { setError(reason.message); return; }
+      }
+      if (mode === "login" && !getUsers().some((user) => user.username === form.username.trim() && user.is_active)) {
+        setError("User not found or account inactive.");
+        return;
+      }
       onAuthenticated(form.username.trim());
       return;
     }

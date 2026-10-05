@@ -1,10 +1,11 @@
-import movies from "../data/movies.json";
+import { getMovies } from "./movieService";
 import genres from "../data/genres.json";
-import ratings from "../data/ratings.json";
+import { getRatings } from "./feedbackService";
 
 // Later, replace this function with a catalog API request.
 export async function getCatalog() {
-  const items = movies.map((movie) => {
+  const ratings = getRatings();
+  const items = getMovies().map((movie) => {
     const votes = ratings.filter((rating) => rating.movie_id === movie.id);
     return {
       ...movie,
@@ -15,3 +16,4 @@ export async function getCatalog() {
   });
   return { items, genres };
 }
+

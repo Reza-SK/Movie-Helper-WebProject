@@ -1,16 +1,18 @@
 import HomePage from "./pages/Homepage";
 import LoginPage from "./pages/Loginpage";
 import DashboardPage from "./pages/Dashboardpage";
-import users from "./data/users.json";
+import { getUsers } from "./services/userService";
+import MovieDetail from "./components/MovieDetail";
+import DashboardSidebar from "./components/DashboardSidebar";
 
 function App() {
   const path = window.location.pathname;
   // Frontend preview only: this value is not proof of authentication.
   const username = sessionStorage.getItem("reza");
-  const user = users.find((user) => user.username === username) || {
+  const user = getUsers().find((user) => user.username === username) || {
     username,
     role: "user",
-    is_active: true,
+    is_active: false,
   };
   const isAuthenticated = Boolean(username) && user.is_active;
 
@@ -28,8 +30,23 @@ function App() {
     <>
       {path === "/" && <HomePage isAuthenticated={isAuthenticated} />}
       {path === "/login" && <LoginPage onAuthenticated={signIn} />}
+      {path === "/forgot-password" && <LoginPage initialMode="forgot" />}
       {path === "/signup" && (
         <LoginPage initialMode="register" onAuthenticated={signIn} />
+      )}
+      {path === "/movie-detail" && (
+        <div className="dashboard-layout">
+        <DashboardSidebar user={user} isAuthenticated={isAuthenticated} signOut={signOut} />
+        <div className="dashboard-detail-content">
+        <MovieDetail
+          movieId={Number(
+            new URLSearchParams(window.location.search).get("id"),
+          )}
+          user={user}
+          isAuthenticated={isAuthenticated}
+        />
+        </div>
+        </div>
       )}
       {path === "/dashboard" && (
         <DashboardPage
@@ -43,3 +60,4 @@ function App() {
 }
 
 export default App;
+

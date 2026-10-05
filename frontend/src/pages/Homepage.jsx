@@ -1,13 +1,32 @@
-const sampleMovies = [
-  { id: 1, title: "Midnight", year: 2025, genre: "Thriller", rating: 8.8, popularity: 98, poster: "/poster-midnight.png" },
-  { id: 2, title: "Orbit", year: 2024, genre: "Sci-Fi", rating: 8.5, popularity: 95, poster: "/poster-orbit.png" },
-  { id: 3, title: "The Last Journey", year: 2025, genre: "Adventure", rating: 8.2, popularity: 91, poster: null },
-  { id: 4, title: "Beyond the Horizon", year: 2023, genre: "Drama", rating: 8.0, popularity: 87, poster: null },
-];
+import { useEffect, useState } from "react";
+import { getCatalog } from "../services/discoveryService";
 
 function HomePage({ isAuthenticated = false }) {
-  const popularMovies = [...sampleMovies]
-    .sort((a, b) => b.popularity - a.popularity)
+  const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    getCatalog()
+      .then((catalog) => {
+        if (cancelled) return;
+        setMovies(catalog.items);
+        setLoading(false);
+      })
+      .catch((reason) => {
+        if (cancelled) return;
+        setError(reason.message);
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const popularMovies = movies
+    .filter((movie) => movie.average_rating !== null)
+    .sort((a, b) => b.average_rating - a.average_rating || a.id - b.id)
     .slice(0, 4);
 
   return (
@@ -55,34 +74,54 @@ function HomePage({ isAuthenticated = false }) {
         <div className="section-heading">
           <h2>Popular Movies</h2>
         </div>
+        {loading && <p role="status">Loading popular movies…</p>}
+        {error && (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        )}
+        {!loading && !error && popularMovies.length === 0 && (
+          <p>No movies available yet.</p>
+        )}
         <div className="movie-grid">
           {popularMovies.map((movie) => (
             <article className="movie-card" key={movie.id}>
-              <div className="poster">
-                {movie.poster ? (
-                  <img
-                    src={movie.poster}
-                    alt={`${movie.title} poster`}
-                    loading="lazy"
-                  />
-                ) : (
-                  <div
-                    className="sample-poster"
-                    aria-label={`${movie.title} sample poster`}
-                  >
-                    <span>Movie Helper</span>
-                    <strong>{movie.title}</strong>
-                  </div>
-                )}
-                <span className="media-type">Movie</span>
-              </div>
-              <div className="movie-info">
-                <h3>{movie.title}</h3>
-                <p>
-                  {movie.year} · {movie.genre}
-                </p>
-                <small>Rating: {movie.rating.toFixed(1)} / 10</small>
-              </div>
+              <a
+                className="catalog-detail-link"
+                href={`/movie-detail?id=${movie.id}`}
+              >
+                <div className="poster">
+                  {movie.poster ? (
+                    <img
+                      src={movie.poster}
+                      alt={`${movie.title} poster`}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div
+                      className="sample-poster"
+                      aria-label={`${movie.title} sample poster`}
+                    >
+                      <span>Movie Helper</span>
+                      <strong>{movie.title}</strong>
+                    </div>
+                  )}
+                  <span className="media-type">
+                    {movie.type === "series" ? "Series" : "Movie"}
+                  </span>
+                </div>
+                <div className="movie-info">
+                  <h3>{movie.title}</h3>
+                  <p>
+                    {movie.year} · {movie.genre_names.join(" · ")}
+                  </p>
+                  <small>
+                    {movie.average_rating === null
+                      ? "No ratings yet"
+                      : `Rating: ${movie.average_rating.toFixed(1)} / 10 (${movie.rating_count} ratings)`}
+                  </small>
+                </div>
+              </a>
             </article>
           ))}
         </div>
@@ -91,4 +130,3 @@ function HomePage({ isAuthenticated = false }) {
   );
 }
 export default HomePage;
-
