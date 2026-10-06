@@ -53,8 +53,7 @@ function DashboardSidebar({
             {isAdmin && (
               <>
                 <hr />
-                {menuButton("notifications", "Notifications")}
-
+                {menuButton("notifications", "Admin Contact Notifications")}
                 {menuButton("users", "Manage users")}
                 {menuButton("movies", "Manage movies")}
                 {menuButton("feedback", "All Reviews & Scores")}
@@ -82,3 +81,4 @@ function DashboardSidebar({
 }
 
 export default DashboardSidebar;
+

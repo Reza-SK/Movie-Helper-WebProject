@@ -38,7 +38,7 @@ export async function sendContactForm(user, subject, message) {
   return form;
 }
 
-export async function getAdminNotifications(user) {
+export async function getAdminContactNotifications(user) {
   if (user?.role !== "admin" || !user.is_active)
     throw new Error("Admin access required.");
   return [...sampleMessages, ...getSavedMessages()]
@@ -51,4 +51,5 @@ export async function getAdminNotifications(user) {
     }))
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }
+
 

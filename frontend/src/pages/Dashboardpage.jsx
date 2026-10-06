@@ -5,7 +5,7 @@ import Profile from "../components/Profile";
 import Discovery from "../components/Discovery";
 import DashboardSidebar from "../components/DashboardSidebar";
 import ContactForm from "../components/ContactForm";
-import Notifications from "../components/Notifications";
+import AdminContactNotifications from "../components/AdminContactNotifications";
 import AllReviewsAndScores from "../components/AllReviewsAndScores";
 import SiteReport from "../components/SiteReport";
 
@@ -23,7 +23,7 @@ function Dashboard({ isAuthenticated = false, user, signOut }) {
     profile: "Profile",
     discovery: "Discovery",
     users: "Manage users",
-    movies: "Manage movies", contact: "Contact Form", notifications: "Notifications", feedback: "All Reviews & Scores", reports: "Site Report",
+    movies: "Manage movies", contact: "Contact Form", notifications: "Admin Contact Notifications", feedback: "All Reviews & Scores", reports: "Site Report",
   };
   const currentPage =
     ((!isAdmin && ["users", "movies", "notifications", "feedback", "reports"].includes(page)) || (isAdmin && page === "contact")) ? "profile" : page;
@@ -51,7 +51,7 @@ function Dashboard({ isAuthenticated = false, user, signOut }) {
         )}
         {currentPage === "discovery" && <Discovery />}
 {!isAdmin && currentPage === "contact" && <ContactForm user={user} />}
-        {isAdmin && currentPage === "notifications" && <Notifications user={user} />}
+        {isAdmin && currentPage === "notifications" && <AdminContactNotifications user={user} />}
         {isAdmin && currentPage === "feedback" && <AllReviewsAndScores user={user} />}
         {isAdmin && currentPage === "reports" && <SiteReport user={user} />}
         {isAdmin && currentPage === "users" && <ManageUsers user={user} onSaved={setProfileUser} />}
@@ -62,4 +62,5 @@ function Dashboard({ isAuthenticated = false, user, signOut }) {
 }
 
 export default Dashboard;
+
 

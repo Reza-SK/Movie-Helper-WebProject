@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { getAdminNotifications } from "../services/contactService";
+import { getAdminContactNotifications } from "../services/contactService";
 
-function Notifications({ user }) {
+function AdminContactNotifications({ user }) {
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-    getAdminNotifications(user)
+    getAdminContactNotifications(user)
       .then((items) => {
         if (cancelled) return;
         setForms(items);
@@ -55,4 +55,5 @@ function Notifications({ user }) {
   );
 }
 
-export default Notifications;
+export default AdminContactNotifications;
+
