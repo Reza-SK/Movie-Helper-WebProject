@@ -3,11 +3,18 @@
 # Create your views here.
 import json
 
+from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model, login, logout
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.core.mail import send_mail
 from django.db.models import Avg, Count, F
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import get_object_or_404
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_GET, require_POST
 from rest_framework.authentication import SessionAuthentication
@@ -38,6 +45,8 @@ from .serializers import (
     ContactMessageSerializer,
     MovieAdminSerializer,
     MovieSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
     ProfileSerializer,
     RatingInputSerializer,
     RatingSerializer,
@@ -252,6 +261,27 @@ class MovieRatingListView(ListAPIView):
             .order_by("-created_at", "-id")
         )
 
+class MovieReviewListView(ListCreateAPIView):
+    serializer_class = ReviewSerializer
+    authentication_classes = (SessionAuthentication,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+
+    def get_queryset(self):
+        movie = get_object_or_404(Movie, pk=self.kwargs["pk"])
+
+        return (
+            Review.objects
+            .filter(movie=movie)
+            .select_related("user")
+            .order_by("-created_at", "-id")
+        )
+
+
+    def perform_create(self, serializer):
+        movie = get_object_or_404(Movie, pk=self.kwargs["pk"])
+        serializer.save(user=self.request.user, movie=movie)
+
+
 class MyRatingView(APIView):
     authentication_classes = (SessionAuthentication,)
     permission_classes = (IsAuthenticated,)
@@ -288,21 +318,6 @@ class MyRatingView(APIView):
         return Response(
             RatingSerializer(rating).data,
             status=201 if created else 200,
-        )
-
-class MovieReviewListView(ListCreateAPIView):
-    serializer_class = ReviewSerializer
-    authentication_classes = (SessionAuthentication,)
-    permission_classes = (IsAuthenticatedOrReadOnly,)
-
-    def get_queryset(self):
-        movie = get_object_or_404(Movie, pk=self.kwargs["pk"])
-
-        return (
-            Review.objects
-            .filter(movie=movie)
-            .select_related("user")
-            .order_by("-created_at", "-id")
         )
 
     def perform_create(self, serializer):
@@ -448,3 +463,104 @@ class AdminUserDetailView(RetrieveUpdateDestroyAPIView):
             )
 
         instance.delete()
+        
+class PasswordResetRequestView(APIView):
+    permission_classes = (AllowAny,)
+    authentication_classes = ()
+
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(
+            data=request.data,
+        )
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data["email"]
+        User = get_user_model()
+
+        users = User.objects.filter(
+            email__iexact=email,
+            is_active=True,
+        )
+
+        for user in users:
+            if not user.has_usable_password():
+                continue
+
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+
+            reset_url = (
+                f"{settings.FRONTEND_URL.rstrip('/')}"
+                f"/reset-password?uid={uid}&token={token}"
+            )
+
+            send_mail(
+                subject="Reset your Movie Helper password",
+                message=f"Use this link to reset your password:\n{reset_url}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+
+        return Response({
+            "detail": (
+                "If an eligible account exists, "
+                "a password reset link has been sent."
+            ),
+        })
+        
+class PasswordResetConfirmView(APIView):
+    permission_classes = (AllowAny,)
+    authentication_classes = ()
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(
+            data=request.data,
+        )
+        serializer.is_valid(raise_exception=True)
+
+        data = serializer.validated_data
+        User = get_user_model()
+
+        try:
+            user_id = force_str(
+                urlsafe_base64_decode(data["uid"])
+            )
+            user = User.objects.get(
+                pk=user_id,
+                is_active=True,
+            )
+        except (
+            ValueError,
+            TypeError,
+            OverflowError,
+            UnicodeDecodeError,
+            User.DoesNotExist,
+        ):
+            raise ValidationError({
+                "detail": "Invalid or expired reset link."
+            })
+
+        if not user.has_usable_password() or not (
+            default_token_generator.check_token(
+                user,
+                data["token"],
+            )
+        ):
+            raise ValidationError({
+                "detail": "Invalid or expired reset link."
+            })
+
+        try:
+            validate_password(data["password"], user=user)
+        except DjangoValidationError as error:
+            raise ValidationError({
+                "password": error.messages,
+            })
+
+        user.set_password(data["password"])
+        user.save(update_fields=["password"])
+
+        return Response({
+            "detail": "Password updated. Please log in."
+        })

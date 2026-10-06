@@ -17,7 +17,7 @@ function ContactForm({ user }) {
       await sendContactForm(user, subject, message);
       setSubject("");
       setMessage("");
-      setSuccess("Request saved. Admins can view it now.");
+      setSuccess("Your request was sent successfully.");
     } catch (reason) {
       setError(reason.message);
     } finally {

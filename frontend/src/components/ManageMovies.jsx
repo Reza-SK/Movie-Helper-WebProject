@@ -21,6 +21,7 @@ function ManageMovies({ user }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [newGenre, setNewGenre] = useState("");
   useEffect(() => {
     let active = true;
     listMovies(user)
@@ -45,14 +46,18 @@ function ManageMovies({ user }) {
     setForm({ ...form, [event.target.name]: event.target.value });
   const submit = async (event) => {
     event.preventDefault();
+    if (busy) return;
     setBusy(true);
     setError("");
     setMessage("");
     try {
       await saveMovie(user, editId, form);
-      setMovies((await listMovies(user)).movies);
+      const data = await listMovies(user);
+      setMovies(data.movies);
+      setGenres(data.genres);
       setForm(null);
-      setMessage("Title saved in this browser.");
+      setNewGenre("");
+      setMessage("Title saved successfully.");
     } catch (reason) {
       setError(reason.message);
     } finally {
@@ -65,7 +70,9 @@ function ManageMovies({ user }) {
     setMessage("");
     try {
       await deleteMovie(user, removing.id);
-      setMovies((await listMovies(user)).movies);
+      const data = await listMovies(user);
+      setMovies(data.movies);
+      setGenres(data.genres);
       setRemoving(null);
       setMessage("Title deleted.");
     } catch (reason) {
@@ -75,6 +82,29 @@ function ManageMovies({ user }) {
     }
   };
   if (loading) return <p role="status">Loading movies and series…</p>;
+  const addGenre = () => {
+    const name = newGenre.trim();
+    if (!name || !form || busy) return;
+
+    const existing = genres.find(
+      (genre) => genre.toLowerCase() === name.toLowerCase(),
+    );
+
+    const selected = existing || name;
+
+    if (!existing) {
+      setGenres((current) => [...current, name].sort());
+    }
+
+    setForm((current) => ({
+      ...current,
+      genres: current.genres.includes(selected)
+        ? current.genres
+        : [...current.genres, selected],
+    }));
+
+    setNewGenre("");
+  };
   return (
     <>
       {error && (
@@ -92,6 +122,7 @@ function ManageMovies({ user }) {
           type="button"
           onClick={() => {
             setForm({ ...emptyForm, genres: [] });
+            setNewGenre("");
             setEditId(null);
             setError("");
             setMessage("");
@@ -214,6 +245,22 @@ function ManageMovies({ user }) {
               ))}
             </div>
           </fieldset>
+          <label>
+            New genre
+            <input
+              value={newGenre}
+              onChange={(event) => setNewGenre(event.target.value)}
+              maxLength={80}
+              disabled={busy}
+            />
+          </label>
+          <button
+            type="button"
+            onClick={addGenre}
+            disabled={busy || !newGenre.trim()}
+          >
+            Add genre
+          </button>
           <div className="profile-actions">
             <button type="submit" disabled={busy}>
               {busy ? "Saving…" : "Save"}
@@ -223,6 +270,10 @@ function ManageMovies({ user }) {
               disabled={busy}
               onClick={() => {
                 setForm(null);
+                setNewGenre("");
+                setGenres(
+                  [...new Set(movies.flatMap((movie) => movie.genres))].sort(),
+                );
                 setError("");
               }}
             >
@@ -234,8 +285,8 @@ function ManageMovies({ user }) {
       {removing && (
         <section className="panel" aria-label="Confirm deletion">
           <p>
-            Delete <strong>{removing.title}</strong>? Existing feedback stays in
-            history as an unavailable title.
+            Delete <strong>{removing.title}</strong>? Its ratings and reviews
+            will also be deleted.
           </p>
           <div className="profile-actions">
             <button type="button" disabled={busy} onClick={remove}>
@@ -287,6 +338,7 @@ function ManageMovies({ user }) {
                           seasons: movie.seasons ?? "",
                         });
                         setEditId(movie.id);
+                        setNewGenre("");
                         setError("");
                         setMessage("");
                       }}

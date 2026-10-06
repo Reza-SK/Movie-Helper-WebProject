@@ -1,20 +1,30 @@
 import { useState } from "react";
-import { getUsers, registerUser } from "../services/userService";
+import {
+  loginUser,
+  registerUser,
+  confirmPasswordReset,
+  requestPasswordReset,
+} from "../services/authService";
 
 const emptyForm = { username: "", email: "", password: "", confirm: "" };
 const titles = {
   login: "Welcome back",
   register: "Create your account",
   forgot: "Reset your password",
+  reset: "Choose a new password",
 };
 
 function LoginPage({ initialMode = "login", onAuthenticated }) {
+  const [busy, setBusy] = useState(false);
   const [mode, setMode] = useState(initialMode);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
   const changeMode = (nextMode) => {
+    if (mode === "reset") {
+      window.history.replaceState(null, "", "/login");
+    }
     setMode(nextMode);
     setForm(emptyForm);
     setError("");
@@ -27,37 +37,85 @@ function LoginPage({ initialMode = "login", onAuthenticated }) {
     setError("");
     setMessage("");
   };
-  //need to be edited from backend in the future
-  const submit = (event) => {
+
+  const submit = async (event) => {
     event.preventDefault();
+    if (busy) return;
     setError("");
     setMessage("");
 
-    if (mode !== "forgot" && !form.username.trim()) {
-      setError("Please enter a username.");
+    if (mode === "forgot" || mode === "reset") {
+      if (mode === "reset" && form.password !== form.confirm) {
+        setError("Passwords do not match.");
+        return;
+      }
+
+      setBusy(true);
+
+      try {
+        if (mode === "forgot") {
+          const result = await requestPasswordReset(form.email.trim());
+          setMessage(result.detail);
+        } else {
+          const params = new URLSearchParams(window.location.search);
+          const uid = params.get("uid");
+          const token = params.get("token");
+
+          if (!uid || !token) {
+            throw new Error("Invalid reset link.");
+          }
+
+          const result = await confirmPasswordReset(uid, token, form.password);
+
+          setMode("login");
+          setForm(emptyForm);
+          setMessage(result.detail);
+
+          window.history.replaceState(null, "", "/login");
+        }
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setBusy(false);
+      }
+
       return;
     }
+
+    if (!form.username.trim()) {
+      setError("Username is required.");
+      return;
+    }
+
     if (mode === "register" && form.password !== form.confirm) {
       setError("Passwords do not match.");
       return;
     }
-    if (mode !== "forgot" && onAuthenticated) {
+
+    setBusy(true);
+
+    try {
+      const username = form.username.trim();
+
       if (mode === "register") {
-        try { registerUser(form); }
-        catch (reason) { setError(reason.message); return; }
+        await registerUser({
+          username,
+          email: form.email.trim(),
+          password: form.password,
+          display_name: username,
+        });
+        setMode("login");
+        setMessage("Account created. Signing in...");
       }
-      if (mode === "login" && !getUsers().some((user) => user.username === form.username.trim() && user.is_active)) {
-        setError("User not found or account inactive.");
-        return;
-      }
-      onAuthenticated(form.username.trim());
-      return;
+
+      await loginUser(username, form.password);
+      if (onAuthenticated) onAuthenticated();
+      else window.location.assign("/dashboard");
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setBusy(false);
     }
-    setMessage(
-      mode === "forgot"
-        ? "Email format is valid. This is a preview; no email has been sent."
-        : "Form is valid. This is a preview; no account has been created or signed in.",
-    );
   };
 
   return (
@@ -71,7 +129,7 @@ function LoginPage({ initialMode = "login", onAuthenticated }) {
           {mode === "forgot" && <p>*Enter Your Email Address*</p>}
 
           <form onSubmit={submit}>
-            {mode !== "login" && (
+            {["register", "forgot"].includes(mode) && (
               <label>
                 Email
                 <input
@@ -81,12 +139,13 @@ function LoginPage({ initialMode = "login", onAuthenticated }) {
                   onChange={update}
                   autoComplete="email"
                   required
+                  disabled={busy}
                 />
               </label>
             )}
             {mode !== "forgot" && (
               <>
-                <label>
+                {["login", "register"].includes(mode) && <label>
                   Username
                   <input
                     name="username"
@@ -95,8 +154,9 @@ function LoginPage({ initialMode = "login", onAuthenticated }) {
                     autoComplete="username"
                     maxLength={150}
                     required
+                    disabled={busy}
                   />
-                </label>
+                </label>}
                 <label>
                   Password
                   <input
@@ -107,13 +167,14 @@ function LoginPage({ initialMode = "login", onAuthenticated }) {
                     autoComplete={
                       mode === "login" ? "current-password" : "new-password"
                     }
-                    minLength={mode === "register" ? 4 : undefined}
+                    minLength={["register", "reset"].includes(mode) ? 4 : undefined}
                     required
+                    disabled={busy}
                   />
                 </label>
               </>
             )}
-            {mode === "register" && (
+            {["register", "reset"].includes(mode) && (
               <label>
                 Confirm password
                 <input
@@ -123,6 +184,7 @@ function LoginPage({ initialMode = "login", onAuthenticated }) {
                   onChange={update}
                   autoComplete="new-password"
                   required
+                  disabled={busy}
                 />
               </label>
             )}
@@ -132,12 +194,10 @@ function LoginPage({ initialMode = "login", onAuthenticated }) {
               </p>
             )}
             {message && <p role="status">{message}</p>}
-            <button type="submit">
-              {mode === "login"
-                ? "Sign in"
-                : mode === "register"
-                  ? "Sign up"
-                  : "Continue"}
+            <button type="submit" disabled={busy}>
+              {busy
+                ? "Please wait..."
+                : { login: "Sign in", register: "Sign up", forgot: "Send reset link", reset: "Save new password" }[mode]}
             </button>
           </form>
 
@@ -147,6 +207,7 @@ function LoginPage({ initialMode = "login", onAuthenticated }) {
                 <button
                   type="button"
                   className="mode-link"
+                  disabled={busy}
                   onClick={() => changeMode("register")}
                 >
                   Create an account
@@ -154,6 +215,7 @@ function LoginPage({ initialMode = "login", onAuthenticated }) {
                 <button
                   type="button"
                   className="mode-link"
+                  disabled={busy}
                   onClick={() => changeMode("forgot")}
                 >
                   Forgot password?
@@ -163,6 +225,7 @@ function LoginPage({ initialMode = "login", onAuthenticated }) {
               <button
                 type="button"
                 className="mode-link"
+                disabled={busy}
                 onClick={() => changeMode("login")}
               >
                 Back to sign in

@@ -242,12 +242,28 @@ class MovieAdminSerializer(serializers.ModelSerializer):
     
 class AdminUserSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
+    
+    display_name = serializers.CharField(
+        source="profile.display_name",
+        max_length=100,
+        required=False,
+        allow_blank=True,
+        default="",
+    )
+    
+    bio = serializers.CharField(
+        source="profile.bio",
+        max_length=500,
+        required=False,
+        allow_blank=True,
+        default="",
+    )
 
     class Meta:
         model = User
         fields = (
             "id", "username", "email",
-            "is_active", "is_staff", "role", "date_joined",
+            "is_active", "is_staff", "role", "date_joined","display_name","bio",
         )
         read_only_fields = ("id", "role", "date_joined")
 
@@ -282,6 +298,24 @@ class AdminUserSerializer(serializers.ModelSerializer):
                 )
 
         return attrs
+    
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop("profile", {})
+
+        instance = super().update(instance, validated_data)
+
+        if profile_data:
+            profile, _ = Profile.objects.get_or_create(
+                user=instance,
+            )
+
+            for field, value in profile_data.items():
+                setattr(profile, field, value)
+
+            profile.save()
+
+        return instance
 
 class AdminUserCreateSerializer(AdminUserSerializer):
     email = serializers.EmailField(required=True)
@@ -289,17 +323,10 @@ class AdminUserCreateSerializer(AdminUserSerializer):
         write_only=True,
         trim_whitespace=False,
     )
-    display_name = serializers.CharField(
-        max_length=100,
-        write_only=True,
-        required=False,
-        allow_blank=True,
-    )
+
 
     class Meta(AdminUserSerializer.Meta):
-        fields = AdminUserSerializer.Meta.fields + (
-            "password", "display_name",
-        )
+        fields = AdminUserSerializer.Meta.fields + ("password",)
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
@@ -320,13 +347,27 @@ class AdminUserCreateSerializer(AdminUserSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        display_name = validated_data.pop("display_name", "")
+        profile_data = validated_data.pop("profile", {})
 
         user = User.objects.create_user(**validated_data)
 
         Profile.objects.create(
             user=user,
-            display_name=display_name or user.username,
+            display_name=(
+                profile_data.get("display_name") or user.username
+            ),
+            bio=profile_data.get("bio", ""),
         )
 
         return user
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    password = serializers.CharField(
+        write_only=True,
+        trim_whitespace=False,
+    )

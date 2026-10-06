@@ -14,6 +14,8 @@ from .views import (
     MovieRatingListView,
     MovieReviewListView,
     MyRatingView,
+    PasswordResetConfirmView,
+    PasswordResetRequestView,
     ProfileHistoryView,
     ProfileView,
     RegisterView,
@@ -46,4 +48,6 @@ urlpatterns = [
     path("admin/movies/<int:pk>/",AdminMovieDetailView.as_view(),name="admin-movie-detail",),
     path("admin/users/",AdminUserListView.as_view(),name="admin-users",),
     path("admin/users/<int:pk>/",AdminUserDetailView.as_view(),name="admin-user-detail",),
+    path("auth/password-reset/", PasswordResetRequestView.as_view(), name="password-reset"),
+    path("auth/password-reset-confirm/",PasswordResetConfirmView.as_view(),name="password-reset-confirm",),
 ]

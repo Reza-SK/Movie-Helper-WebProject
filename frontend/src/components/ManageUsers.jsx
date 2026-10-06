@@ -8,6 +8,7 @@ const emptyForm = {
   bio: "",
   role: "user",
   is_active: true,
+  password: "",
 };
 function ManageUsers({ user, onSaved }) {
   const [users, setUsers] = useState([]);
@@ -55,7 +56,7 @@ function ManageUsers({ user, onSaved }) {
       setUsers(await listUsers(user));
       setForm(null);
       if (updated.id === user.id) onSaved(updated);
-      setMessage("User saved in this browser.");
+      setMessage("User saved successfully.");
     } catch (reason) {
       setError(reason.message);
     } finally {
@@ -117,6 +118,20 @@ function ManageUsers({ user, onSaved }) {
               disabled={busy || editId === user.id}
             />
           </label>
+          {editId === null && (
+            <label>
+              Password
+              <input
+                name="password"
+                type="password"
+                value={form.password}
+                onChange={update}
+                autoComplete="new-password"
+                required
+                disabled={busy}
+              />
+            </label>
+          )}
           <label>
             Display name
             <input
@@ -233,7 +248,7 @@ function ManageUsers({ user, onSaved }) {
                       type="button"
                       disabled={busy || Boolean(form) || Boolean(removing)}
                       onClick={() => {
-                        setForm({ ...item });
+                        setForm({ ...emptyForm, ...item, display_name: item.display_name ?? "", bio: item.bio ?? "", password: "" });
                         setEditId(item.id);
                         setError("");
                         setMessage("");

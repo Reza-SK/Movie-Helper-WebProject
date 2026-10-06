@@ -57,7 +57,7 @@ function MovieDetail({ movieId, user, isAuthenticated }) {
         ...feedback,
       });
       setComment("");
-      setMessage("Feedback saved in this browser.");
+      setMessage("Feedback saved successfully.");
     } catch (reason) {
       setError(reason.message);
     } finally {

@@ -47,7 +47,7 @@ function Profile({ user, onSaved }) {
       setProfile(updated);
       setForm(updated);
       setEditing(false);
-      setMessage("Profile saved in this browser.");
+      setMessage("Profile saved successfully.");
       onSaved(updated);
     } catch (reason) {
       setError(reason.message);

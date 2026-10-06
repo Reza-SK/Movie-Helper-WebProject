@@ -1,6 +1,7 @@
-from django.contrib import admin  # noqa: I001
+from django.contrib import admin
+
 # Register your models here.
-from .models import Profile, Movie, Rating, Review, ContactMessage
+from .models import ContactMessage, Movie, Profile, Rating, Review
 
 
 @admin.register(Profile)
@@ -11,10 +12,14 @@ class ProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
-    list_display = ("title", "type", "year")
+    list_display = ("title", "type", "display_genres", "year")
     list_filter = ("type", "year")
     search_fields = ("title",)
     ordering = ("title",)
+
+    @admin.display(description="Genres")
+    def display_genres(self, obj):
+        return ", ".join(obj.genres)
 
 
 @admin.register(Rating)
@@ -26,7 +31,7 @@ class RatingAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ("user", "movie", "created_at")
+    list_display = ("user", "movie", "comment", "created_at")
     search_fields = ("user__username", "movie__title", "comment")
 
 

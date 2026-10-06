@@ -1,17 +1,11 @@
-import { getUsers } from "./userService";
-import { getCatalog } from "./discoveryService";
+import { api } from "./api";
 
-export async function getSiteReport(user) {
-  if (user?.role !== "admin" || !user.is_active)
-    throw new Error("Admin access required.");
-  const { items } = await getCatalog();
-  const ranked = items
-    .filter((item) => item.average_rating !== null)
-    .sort((a, b) => b.average_rating - a.average_rating || a.id - b.id);
+export async function getSiteReport() {
+  const report = await api("/admin/reports/");
+
   return {
-    activeUsers: getUsers().filter((person) => person.is_active).length,
-    topMovies: ranked.filter((item) => item.type === "movie").slice(0, 5),
-    topSeries: ranked.filter((item) => item.type === "series").slice(0, 5),
+    activeUsers: report.active_users,
+    topMovies: report.top_movies,
+    topSeries: report.top_series,
   };
 }
-
