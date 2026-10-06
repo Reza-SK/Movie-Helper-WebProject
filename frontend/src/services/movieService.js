@@ -1,14 +1,21 @@
 import sampleMovies from "../data/movies.json";
-import genres from "../data/genres.json";
 import { getUsers } from "./userService";
 
 const key = "movie-helper-movies";
+// Compatibility for titles saved in the browser before genres became names.
+const oldGenreNames = { 1: "Thriller", 2: "Sci-Fi", 3: "Adventure", 4: "Drama", 5: "Comedy", 6: "Mystery" };
 export function getMovies() {
   try {
     const saved = JSON.parse(localStorage.getItem(key));
-    if (Array.isArray(saved)) return saved;
+    if (Array.isArray(saved)) return saved.map((movie) => {
+      const { genre_ids, ...rest } = movie;
+      return { ...rest, genres: movie.genres || (genre_ids || []).map((id) => oldGenreNames[id]).filter(Boolean) };
+    });
   } catch { /* Use sample data. */ }
   return sampleMovies;
+}
+export function getGenres() {
+  return [...new Set([...sampleMovies, ...getMovies()].flatMap((movie) => movie.genres))].sort();
 }
 function requireAdmin(actor) {
   const current = getUsers().find((user) => user.id === actor?.id);
@@ -16,7 +23,7 @@ function requireAdmin(actor) {
 }
 export async function listMovies(actor) {
   requireAdmin(actor);
-  return { movies: getMovies(), genres };
+  return { movies: getMovies(), genres: getGenres() };
 }
 export async function saveMovie(actor, id, values) {
   requireAdmin(actor);
@@ -31,12 +38,12 @@ export async function saveMovie(actor, id, values) {
   if (!["movie", "series"].includes(values.type)) throw new Error("Invalid type.");
   if (values.type === "movie" && (!Number.isInteger(duration) || duration < 1)) throw new Error("Enter a positive duration in minutes.");
   if (values.type === "series" && (!Number.isInteger(seasons) || seasons < 1)) throw new Error("Enter a positive number of seasons.");
-  if (!values.genre_ids.length || values.genre_ids.some((id) => !genres.some((genre) => genre.id === id))) throw new Error("Select at least one valid genre.");
+  if (!values.genres.length || values.genres.some((genre) => !getGenres().includes(genre))) throw new Error("Select at least one valid genre.");
   const poster = values.poster.trim();
   if (poster && !/^\/(?!\/)|^https?:\/\//i.test(poster)) throw new Error("Poster must be a local path starting with / or an HTTP(S) URL.");
   const result = {
     id: id ?? Math.max(Date.now(), ...movies.map((movie) => movie.id + 1)), title: values.title.trim(), description: values.description.trim(),
-    year, type: values.type, poster: poster || null, genre_ids: [...new Set(values.genre_ids)],
+    year, type: values.type, poster: poster || null, genres: [...new Set(values.genres)],
     duration_minutes: values.type === "movie" ? duration : null,
     seasons: values.type === "series" ? seasons : null,
     created_at: original?.created_at || new Date().toISOString(),

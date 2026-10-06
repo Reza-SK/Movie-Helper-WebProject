@@ -34,7 +34,7 @@ function Discovery() {
   );
   const visibleItems = items.filter(
     (item) =>
-      (!genre || item.genre_ids.includes(Number(genre))) &&
+      (!genre || item.genres.includes(genre)) &&
       (!year || item.year === Number(year)),
   );
   if (sort !== "default") {
@@ -71,8 +71,8 @@ function Discovery() {
           >
             <option value="">All genres</option>
             {genres.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
+              <option key={item} value={item}>
+                {item}
               </option>
             ))}
           </select>
