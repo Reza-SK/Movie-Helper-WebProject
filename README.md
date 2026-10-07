@@ -41,16 +41,12 @@ cd ..
 
 ### 3. Set up the backend
 
-Go to the backend directory:
-
-```bash
-cd backend
-```
+Go to the root directory of project
 
 Create a Python virtual environment:
 
 ```bash
-python -m venv django-backend
+python -m venv .venv-django-backend
 ```
 
 Activate the virtual environment.
@@ -58,19 +54,19 @@ Activate the virtual environment.
 #### Windows Command Prompt
 
 ```cmd
-django-backend\Scripts\activate
+.venv-django-backend\Scripts\activate
 ```
 
 #### Windows PowerShell
 
 ```powershell
-.\django-backend\Scripts\Activate.ps1
+.\.venv-django-backend\Scripts\Activate.ps1
 ```
 
 #### macOS / Linux
 
 ```bash
-source django-backend/bin/activate
+source .venv-django-backend/bin/activate
 ```
 
 Install the required Python packages:
@@ -107,19 +103,19 @@ If the virtual environment is not already active, activate it first.
 #### Windows Command Prompt
 
 ```cmd
-django-backend\Scripts\activate
+.venv-django-backend\Scripts\activate
 ```
 
 #### Windows PowerShell
 
 ```powershell
-.\django-backend\Scripts\Activate.ps1
+.\.venv-django-backend\Scripts\Activate.ps1
 ```
 
 #### macOS / Linux
 
 ```bash
-source django-backend/bin/activate
+source .venv-django-backend/bin/activate
 ```
 
 Then start the Django development server:
