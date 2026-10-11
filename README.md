@@ -41,7 +41,11 @@ cd ..
 
 ### 3. Set up the backend
 
-Go to the root directory of project
+Go to the root directory of project then:
+
+```bash
+cd backend
+```
 
 Create a Python virtual environment:
 
