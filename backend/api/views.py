@@ -8,7 +8,6 @@ from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.core.mail import send_mail
 from django.db.models import Avg, Count, F
 from django.http import JsonResponse
 from django.middleware.csrf import get_token
@@ -494,19 +493,12 @@ class PasswordResetRequestView(APIView):
                 f"/reset-password?uid={uid}&token={token}"
             )
 
-            send_mail(
-                subject="Reset your Movie Helper password",
-                message=f"Use this link to reset your password:\n{reset_url}",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
-            )
+            return Response({
+                "reset_url": reset_url,
+            })
 
-        return Response({
-            "detail": (
-                "If an eligible account exists, "
-                "a password reset link has been sent."
-            ),
+        raise ValidationError({
+            "detail": "No account was found with this email.",
         })
         
 class PasswordResetConfirmView(APIView):

@@ -55,7 +55,8 @@ function LoginPage({ initialMode = "login", onAuthenticated }) {
       try {
         if (mode === "forgot") {
           const result = await requestPasswordReset(form.email.trim());
-          setMessage(result.detail);
+          window.location.assign(result.reset_url);
+          return;
         } else {
           const params = new URLSearchParams(window.location.search);
           const uid = params.get("uid");
@@ -197,7 +198,7 @@ function LoginPage({ initialMode = "login", onAuthenticated }) {
             <button type="submit" disabled={busy}>
               {busy
                 ? "Please wait..."
-                : { login: "Sign in", register: "Sign up", forgot: "Send reset link", reset: "Save new password" }[mode]}
+                : { login: "Sign in", register: "Sign up", forgot: "Continue", reset: "Save new password" }[mode]}
             </button>
           </form>
 
